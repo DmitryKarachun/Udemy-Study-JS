@@ -1,29 +1,23 @@
-"use strict";
-console.log("Запрос данных");
+const funds = [
+  {amount: -1400},
+  {amount: 2400},
+  {amount: -1000},
+  {amount: 500},
+  {amount: 10400},
+  {amount: -11400}
+];
 
-const req = new Promise((res, rej) => {
-  setTimeout(() => {
-    console.log("Подготовка данных");
+const getPositiveIncomeAmount = (data) => {
+  return  data.filter(item => item.amount >=0)
+  .reduce((sum, num) => sum + num.amount, 0);
+  };
 
-    const good = {
-      name: "TV",
-      price: 2000,
-    };
-    res(good);
-  }, 2000);
-}).then((good) => {
-  return new Promise((res, rej) => {
-    setTimeout(() => {
-      good.status = "order";
-      res(good);
-    }, 2000);
-  });
-}).then((data) => {
-  data.modify = true;
-  return data;
+console.log(getPositiveIncomeAmount(funds));
 
-}).then((data)=>{
-  console.log(data);
-}). catch(()=>{
-  console.error('Произошла ошибка');
-});
+const getTotalIncomeAmount = (data) => {
+if (data.some(num => num.amount < 0 )) {
+  return data.reduce((sum, num) => sum + num.amount, 0);
+} else return getPositiveIncomeAmount(data)
+};
+
+console.log(getTotalIncomeAmount(funds));

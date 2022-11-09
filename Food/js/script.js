@@ -106,14 +106,14 @@ window.addEventListener("DOMContentLoaded", () => {
     clearInterval(modalTimerId);
   }
 
- 
+
 
   function closeModal() {
     modal.classList.toggle("show");
     document.body.style.overflow = "";
   }
 
-  
+
 
   modal.addEventListener("click", (e) => {
     if (e.target === modal || e.target.getAttribute('data-close') == '') {
@@ -181,89 +181,79 @@ window.addEventListener("DOMContentLoaded", () => {
       this.parent.append(element);
     }
   }
+  const getResource = async (url) => {
+    const res = await fetch(url);
 
-  new MenuCard(
-    "img/tabs/vegy.jpg",
-    "vegy",
-    `Меню "Фитнес"`,
-    `Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!`,
-    9,
-    '.menu .container',
-    'menu__item',
-    'big'
-  ).render();
+    if (!res.ok) {
+      throw new Error(`Could not fetch ${url}, status: ${res.status}`);
+    }
 
-  new MenuCard(
-    "img/tabs/elite.jpg",
-    "elite",
-    `Меню “Премиум”`,
-    `В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!`,
-    11,
-    '.menu .container',
-    'menu__item',
-    'big'
-  ).render();
+    return await res.json();
+  };
 
-  new MenuCard(
-    "img/tabs/post.jpg",
-    "post",
-    `Меню "Постное"`,
-    `Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.`,
-    5,
-    '.menu .container',
-    'menu__item',
-    'big'
-  ).render();
-
+  // getResource('http://localhost:3000/menu')
+  // .then(data => {
+  //   data.forEach(({img, altimg, title, descr, price}) => {
+  //     new MenuCard(img, altimg, title, descr, price, '.menu .container').render();
+  //   });
+  // });
+  axios.get('http://localhost:3000/menu')
+  .then(data => {data.data.forEach(({img, altimg, title, descr, price}) => {
+        new MenuCard(img, altimg, title, descr, price, '.menu .container').render();
+      });
+});
 
   // Forms
   const forms = document.querySelectorAll('form');
   const message = {
-      loading: 'img/form/spinner.svg',
-      success: 'Спасибо! Скоро мы с вами свяжемся',
-      failure: 'Что-то пошло не так...'
+    loading: 'img/form/spinner.svg',
+    success: 'Спасибо! Скоро мы с вами свяжемся',
+    failure: 'Что-то пошло не так...'
   };
 
   forms.forEach(item => {
-      postData(item);
+    bindPostData(item);
   });
 
-  function postData(form) {
-      form.addEventListener('submit', (e) => {
-          e.preventDefault();
+  const postData = async (url, data) => {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        'Content-type': 'application/json'
+      },
+      body: data
+    });
+    return await res.json();
+  };
 
-          let statusMessage = document.createElement('img');
-          statusMessage.src = message.loading;
-          statusMessage.style.cssText = `
+  function bindPostData(form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      let statusMessage = document.createElement('img');
+      statusMessage.src = message.loading;
+      statusMessage.style.cssText = `
               display: block;
               margin: 0 auto;
           `;
-          form.insertAdjacentElement('afterend', statusMessage);
-      
-          const request = new XMLHttpRequest();
-          request.open('POST', 'server.php');   
-          request.setRequestHeader('Content-type', 'application/json; charset=utf-8');
-          const formData = new FormData(form);
+      form.insertAdjacentElement('afterend', statusMessage);
 
-          const object = {};
-          formData.forEach(function(value, key){
-              object[key] = value;
-          });
-          const json = JSON.stringify(object);
+      const formData = new FormData(form);
+    
+      const json = JSON.stringify(Object.fromEntries(formData.entries()));
+   
+      postData('http://localhost:3000/requests', json)
+        .then((data) => {
+          console.log(data);
+          showThanksModal(message.success);
 
-          request.send(json);
-
-          request.addEventListener('load', () => {
-              if (request.status === 200) {
-                  console.log(request.response);
-                  showThanksModal(message.success);
-                  statusMessage.remove();
-                  form.reset();
-              } else {
-                  showThanksModal(message.failure);
-              }
-          });
-      });
+          statusMessage.remove();
+        }).catch(() => {
+          showThanksModal(message.failure);
+        }).finally(() => {
+          form.reset();
+        });
+    });
   }
 
   function showThanksModal(message) {
@@ -282,11 +272,60 @@ window.addEventListener("DOMContentLoaded", () => {
     `;
     document.querySelector('.modal').append(thanksModal);
     setTimeout(() => {
-        thanksModal.remove();
-        prevModalDialog.classList.add('show');
-        prevModalDialog.classList.remove('hide');
-        closeModal();
+      thanksModal.remove();
+      prevModalDialog.classList.add('show');
+      prevModalDialog.classList.remove('hide');
+      closeModal();
     }, 4000);
-}
+  }
+
+  //Slider
+  const slides = document.querySelectorAll('.offer__slide'),
+        prev = document.querySelector('.offer__slider-prev'),
+        next = document.querySelector('.offer__slider-next'),
+        total = document.querySelector('#total'),
+        current = document.querySelector('#current');
+
+    let slideIndex = 1;
+    showSlides(slideIndex);
+
+    if (slides.length <10) {
+      total.textContent = `0${slides.length}`
+    } else {
+      total.textContent = slides.length;
+    }
+
+   function showSlides(n) {
+      if (n > slides.length ) {
+        slideIndex = 1
+      } 
+
+      if (n < 1) {
+        slideIndex = slides.length;
+      }
+
+      
+
+      slides.forEach(item => item.style.display = 'none');
+      slides[slideIndex - 1].style.display = 'block';
+
+      if (slides.length < 10) {
+        current.textContent = `0${slideIndex}`;
+      } else {
+        current.textContent = slideIndex;
+      }
+    }
+
+   function plusSlides(n) {
+    showSlides(slideIndex += n)
+    }
+
+    prev.addEventListener('click', () => {
+      plusSlides(-1)
+    });
+    next.addEventListener('click', () => {
+      plusSlides(+1)
+    });
+
 
 });
