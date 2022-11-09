@@ -1,25 +1,29 @@
-let start = Date.now(); // запомнить время начала
+"use strict";
+console.log("Запрос данных");
 
-let timer = setInterval(function() {
-  // сколько времени прошло с начала анимации?
-  let timePassed = Date.now() - start;
+const req = new Promise((res, rej) => {
+  setTimeout(() => {
+    console.log("Подготовка данных");
 
-  if (timePassed >= 2000) {
-    clearInterval(timer); // закончить анимацию через 2 секунды
-    return;
-  }
+    const good = {
+      name: "TV",
+      price: 2000,
+    };
+    res(good);
+  }, 2000);
+}).then((good) => {
+  return new Promise((res, rej) => {
+    setTimeout(() => {
+      good.status = "order";
+      res(good);
+    }, 2000);
+  });
+}).then((data) => {
+  data.modify = true;
+  return data;
 
-  // отрисовать анимацию на момент timePassed, прошедший с начала анимации
-  draw(timePassed);
-
-}, 20);
-
-// в то время как timePassed идёт от 0 до 2000
-// left изменяет значение от 0px до 400px
-function draw(timePassed) {
-  train.style.left = timePassed / 100 + 'px';
-}
-function setOptions(height, width, ...additional) {
-  console.log(height, width, additional)
-}
-setOptions(400, 500, 'red', 'top');
+}).then((data)=>{
+  console.log(data);
+}). catch(()=>{
+  console.error('Произошла ошибка');
+});
