@@ -1,23 +1,21 @@
-const funds = [
-  {amount: -1400},
-  {amount: 2400},
-  {amount: -1000},
-  {amount: 500},
-  {amount: 10400},
-  {amount: -11400}
-];
-
-const getPositiveIncomeAmount = (data) => {
-  return  data.filter(item => item.amount >=0)
-  .reduce((sum, num) => sum + num.amount, 0);
-  };
-
-console.log(getPositiveIncomeAmount(funds));
-
-const getTotalIncomeAmount = (data) => {
-if (data.some(num => num.amount < 0 )) {
-  return data.reduce((sum, num) => sum + num.amount, 0);
-} else return getPositiveIncomeAmount(data)
-};
-
-console.log(getTotalIncomeAmount(funds));
+const p1 = new Promise((resolve, reject) => {
+  setTimeout(resolve, 1000, "one");
+});
+const p2 = new Promise((resolve, reject) => {
+  setTimeout(resolve, 2000, "two");
+});
+const p3 = new Promise((resolve, reject) => {
+  setTimeout(resolve, 3000, "three");
+});
+const p4 = new Promise((resolve, reject) => {
+  setTimeout(resolve, 4000, "four");
+});
+const p5 = new Promise((resolve, reject) => {
+  reject("reject");
+});
+ 
+Promise.all([p1, p2, p3, p4, p5]).then(value => {
+  console.log(value);
+}, reason => {
+  console.log(reason)
+});
