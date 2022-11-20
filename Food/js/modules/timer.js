@@ -1,7 +1,6 @@
-function timer() {
+function timer(id, dedlain) {
 //Timer
 
-const dedlain = "2022-11-04";
 
 function getTimeRemaining(endtime) {
 	let days, hours, minutes, seconds;
@@ -55,6 +54,6 @@ function setClock(selector, endtime) {
 		}
 	}
 }
-setClock(".timer", dedlain);
+setClock(id, dedlain);
 }
-module.exports = timer;
+export default timer;
